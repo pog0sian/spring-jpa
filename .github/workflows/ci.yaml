@@ -1,0 +1,61 @@
+name: Spring boot CI
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  check-tasks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Grant scripts permition
+        run: chmod +x ./mvnw ./.test/run-test.sh
+
+      - name: Load .env
+        run: cat .env >> "$GITHUB_ENV"
+
+      - name: Start PostgreSQL
+        run: docker compose up -d
+
+      - name: Wait for PostgreSQL
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          RETRIES=30
+          COUNT=0
+          until docker compose exec -T postgres pg_isready -U postgres; do
+            COUNT=$((COUNT + 1))
+            if [ $COUNT -ge $RETRIES ]; then
+              echo "PostgreSQL did not become ready in time"
+              docker compose logs postgres
+              exit 1
+            fi
+            echo "Waiting... ($COUNT/$RETRIES)"
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+
+      - name: Compile Spring app
+        run: ./mvnw clean package
+
+      - name: Run Spring app
+        run: java -jar ./target/*.jar --server.port=${{ env.SERVER_PORT }} &
+
+      - name: Run tests
+        run: ./.test/run-test.sh
+        env:
+          BASE_URL: http://localhost:${{ env.SERVER_PORT }}
