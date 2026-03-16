@@ -14,22 +14,27 @@ open class UserEntity(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    open val id: Long = 0,
 
-    @Column(unique = true, nullable = false)
-    val email: String = "",
+    @Column(name = "email", unique = true, nullable = false)
+    open val email: String = "",
 
-    val firstName: String = "",
-    val lastName: String = "",
-    val active: Boolean = true
+    @Column(name = "first_name", nullable = false)
+    open val firstName: String = "",
+
+    @Column(name = "last_name", nullable = false)
+    open val lastName: String = "",
+
+    @Column(name = "is_active", nullable = false)
+    open val isActive: Boolean = true
 
 ) {
 
-    fun toDomain() = User(id, email, firstName, lastName, active)
+    fun toDomain() = User(id, email, firstName, lastName, isActive)
 
     companion object {
         fun fromDomain(u: User) =
-            UserEntity(u.id, u.email, u.firstName, u.lastName, u.active)
+            UserEntity(u.id, u.email, u.firstName, u.lastName, u.isActive)
 
     }
 }

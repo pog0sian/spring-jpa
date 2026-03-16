@@ -1,8 +1,8 @@
 package com.example.springjpa.api.controller
 
-import com.example.springjpa.api.dto.UserCreateRequest
-import com.example.springjpa.api.dto.UserResponse
-import com.example.springjpa.api.dto.UserUpdateRequest
+import com.example.springjpa.api.dto.user.UserCreateRequest
+import com.example.springjpa.api.dto.user.UserResponse
+import com.example.springjpa.api.dto.user.UserUpdateRequest
 import com.example.springjpa.application.service.UserService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity

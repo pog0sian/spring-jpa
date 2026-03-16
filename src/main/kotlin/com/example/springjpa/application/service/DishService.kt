@@ -1,5 +1,6 @@
 package com.example.springjpa.application.service
 
+import com.example.springjpa.application.exception.NotFoundException
 import com.example.springjpa.domain.model.Dish
 import com.example.springjpa.domain.port.DishRepositoryPort
 import org.springframework.stereotype.Service
@@ -14,13 +15,8 @@ class DishService(
     fun get(id: Long) =
         repo.findById(id) ?: throw NotFoundException("Dish with id=$id not found")
 
-    fun create(cmd: Dish): Pair<Dish, Boolean> {
-        val existing = repo.findByName(cmd.name)
-        return if (existing != null) {
-            existing to false
-        } else {
-            repo.save(cmd.copy(id = 0)) to true
-        }
+    fun create(restaurantId: Long, cmd: Dish): Pair<Dish, Boolean> {
+        return repo.create(restaurantId, cmd.copy(id = 0)) to true
     }
 
     fun update(id: Long, cmd: Dish): Dish {
@@ -28,7 +24,7 @@ class DishService(
             throw NotFoundException("Dish with id=$id not found")
         }
 
-        return repo.save(cmd.copy(id = id))
+        return repo.update(cmd.copy(id = id))
     }
 
     fun delete(id: Long) {

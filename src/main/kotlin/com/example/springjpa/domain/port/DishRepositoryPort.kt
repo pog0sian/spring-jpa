@@ -6,6 +6,7 @@ interface DishRepositoryPort {
     fun findAll(namePart: String?): List<Dish>
     fun findById(id: Long): Dish?
     fun findByName(name: String): Dish?
-    fun save(dish: Dish): Dish
+    fun create(restaurantId: Long, dish: Dish): Dish
+    fun update(dish: Dish): Dish
     fun delete(id: Long)
 }

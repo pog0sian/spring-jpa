@@ -1,5 +1,6 @@
 package com.example.springjpa.application.service
 
+import com.example.springjpa.application.exception.NotFoundException
 import com.example.springjpa.domain.model.User
 import org.springframework.stereotype.Service
 import com.example.springjpa.domain.port.UserRepositoryPort
@@ -40,4 +41,3 @@ class UserService(
 }
 
 
-class NotFoundException(message: String) : RuntimeException(message)
