@@ -53,7 +53,7 @@ jobs:
         run: ./mvnw clean package
 
       - name: Run Spring app
-        run: java -jar ./target/*.jar --server.port=${{ env.SERVER_PORT }} &
+        run: java -jar ./target/*.jar --server.port=${{ env.SERVER_PORT }}
 
       - name: Run tests
         run: ./.test/run-test.sh
