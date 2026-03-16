@@ -37,8 +37,8 @@ open class DishEntity(
     @JoinColumn(name = "restaurant_id", nullable = false)
     open val restaurant: RestaurantEntity = RestaurantEntity(),
 
-//    @ManyToMany(mappedBy = "dishes")
-//    open val orders: MutableList<OrderEntity> = mutableListOf()
+    @ManyToMany(mappedBy = "dishes")
+    open val orders: MutableList<OrderEntity> = mutableListOf()
 
 ) {
     fun toDomain() = Dish(id, name, description, price, isAvailable, restaurant.id)
