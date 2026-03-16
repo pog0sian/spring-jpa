@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToMany
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import java.math.BigDecimal
@@ -34,7 +35,10 @@ open class DishEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id", nullable = false)
-    open val restaurant: RestaurantEntity = RestaurantEntity()
+    open val restaurant: RestaurantEntity = RestaurantEntity(),
+
+    @ManyToMany(mappedBy = "dishes")
+    open val orders: MutableList<OrderEntity> = mutableListOf()
 
 ) {
     fun toDomain() = Dish(id, name, description, price, isAvailable, restaurant.id)
