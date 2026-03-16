@@ -53,7 +53,11 @@ jobs:
         run: ./mvnw clean package
 
       - name: Run Spring app
-        run: java -jar ./target/*.jar --server.port=${{ env.SERVER_PORT }} &
+        run: |
+          mkdir -p logs
+          # Запускаем приложение и пишем stdout/stderr в файл
+          nohup java -jar ./target/*.jar --server.port=${{ env.SERVER_PORT }} > logs/app.log 2>&1 &
+          echo $! > logs/app.pid
 
       - name: Run tests
         run: ./.test/run-test.sh
