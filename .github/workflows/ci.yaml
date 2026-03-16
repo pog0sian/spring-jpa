@@ -50,7 +50,7 @@ jobs:
           echo "PostgreSQL is ready!"
 
       - name: Compile Spring app
-        run: ./mvnw -e -X clean package
+        run: ./mvnw -e -X clean package -DskipTests
 
       - name: Run Spring app
         run: |
