@@ -59,6 +59,21 @@ jobs:
           nohup java -jar ./target/*.jar --server.port=${{ env.SERVER_PORT }} > logs/app.log 2>&1 &
           echo $! > logs/app.pid
 
+      - name: Wait for Spring Boot
+        run: |
+          echo "Waiting for Spring Boot..."
+          for i in {1..60}; do
+            if curl -fsS "http://localhost:${{ env.SERVER_PORT }}/actuator/health" >/dev/null 2>&1; then
+              echo "Spring Boot is up!"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Spring Boot did not start in time"
+          echo "---- app.log ----"
+          tail -n 300 logs/app.log || true
+          exit 1
+
       - name: Run tests
         run: ./.test/run-test.sh
         env:
