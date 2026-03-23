@@ -5,6 +5,7 @@ import com.example.springjpa.api.dto.dish.DishUpdateRequest
 import com.example.springjpa.application.service.DishService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/dishes")
+@Validated
 class DishController(
     private val service: DishService
 ) {

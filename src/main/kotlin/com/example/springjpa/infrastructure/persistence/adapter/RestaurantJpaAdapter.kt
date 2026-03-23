@@ -19,8 +19,8 @@ class RestaurantJpaAdapter(
     override fun findById(id: Long): Restaurant? =
         repo.findById(id).orElse(null)?.toDomain()
 
-    override fun findByAddress(address: String): Restaurant? =
-        repo.findByAddress(address)?.toDomain()
+    override fun findByName(name: String): Restaurant? =
+        repo.findByName(name)?.toDomain()
 
     override fun findByIdWithDishes(id: Long): Restaurant? =
         repo.findWithDishesById(id)?.toDomainWithDishes()

@@ -1,7 +1,6 @@
 package com.example.springjpa.infrastructure.persistence.adapter
 
 import com.example.springjpa.application.exception.NotFoundException
-import com.example.springjpa.application.exception.RestaurantNotFoundException
 import com.example.springjpa.domain.model.Dish
 import com.example.springjpa.domain.port.DishRepositoryPort
 import com.example.springjpa.infrastructure.persistence.entity.DishEntity
@@ -28,12 +27,15 @@ class DishJpaAdapter(
     override fun findById(id: Long): Dish? =
         repo.findById(id).orElse(null)?.toDomain()
 
+    override fun findAllById(ids: List<Long>): List<Dish> =
+        repo.findAllById(ids).map { it.toDomain() }
+
     override fun findByName(name: String): Dish? =
         repo.findByName(name)?.toDomain()
 
     override fun create(restaurantId: Long, dish: Dish): Dish {
         val restaurant = restaurantRepo.findById(restaurantId)
-            .orElseThrow { RestaurantNotFoundException(restaurantId) }
+            .orElseThrow { NotFoundException("Restaurant with id=$restaurantId not found") }
 
         val entity = DishEntity.fromDomain(dish, restaurant)
 
@@ -45,7 +47,7 @@ class DishJpaAdapter(
             .orElseThrow { NotFoundException("Dish with id=${dish.id} not found") }
 
         val restaurant = restaurantRepo.findById(existing.restaurant.id)
-            .orElseThrow { RestaurantNotFoundException(existing.restaurant.id) }
+            .orElseThrow { NotFoundException("Restaurant with id=${existing.restaurant.id} not found") }
 
         val entity = DishEntity.fromDomain(dish, restaurant)
 

@@ -7,6 +7,7 @@ import com.example.springjpa.application.service.OrderService
 import com.example.springjpa.infrastructure.persistence.entity.OrderStatus
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/orders")
+@Validated
 class OrderController(
     private val service: OrderService
 ) {

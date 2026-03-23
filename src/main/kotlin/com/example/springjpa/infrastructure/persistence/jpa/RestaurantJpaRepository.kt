@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface RestaurantJpaRepository: JpaRepository<RestaurantEntity, Long> {
-    fun findByAddress(address: String): RestaurantEntity?
+    fun findByName(name: String): RestaurantEntity?
 
     @EntityGraph(attributePaths = ["dishes"])
     fun findWithDishesById(id: Long): RestaurantEntity?

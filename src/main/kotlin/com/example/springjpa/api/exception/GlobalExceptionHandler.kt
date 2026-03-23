@@ -1,9 +1,13 @@
 package com.example.springjpa.api.exception
 
 import com.example.springjpa.api.dto.ErrorResponse
+import com.example.springjpa.api.dto.ValidationErrorResponse
+import com.example.springjpa.application.exception.AlreadyExistsException
+import com.example.springjpa.application.exception.AppException
+import com.example.springjpa.application.exception.BadRequestException
+import com.example.springjpa.application.exception.InvalidOrderStateException
 import com.example.springjpa.application.exception.NotFoundException
-import com.example.springjpa.application.exception.RestaurantNotFoundException
-import org.springframework.dao.InvalidDataAccessApiUsageException
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -14,72 +18,68 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
-    @ExceptionHandler(RestaurantNotFoundException::class)
-    fun handleRestaurantNotFound(e: RestaurantNotFoundException): ResponseEntity<ErrorResponse> {
+    private val logger = KotlinLogging.logger {}
 
-        val error = ErrorResponse(
-            status = 404,
-            error = "Not Found",
-            message = e.message ?: "Restaurant not found"
-        )
+    @ExceptionHandler(AppException::class)
+    fun handleCommon(e: AppException): ResponseEntity<ErrorResponse> {
+        val status = when (e) {
+            is NotFoundException -> HttpStatus.NOT_FOUND
+            is AlreadyExistsException -> HttpStatus.CONFLICT
+            is InvalidOrderStateException -> HttpStatus.BAD_REQUEST
+            is BadRequestException -> HttpStatus.BAD_REQUEST
+        }
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error)
-    }
+        if (e is NotFoundException) {
+            logger.warn { e.message ?: "Requested resource not found" }
+        }
 
-    @ExceptionHandler(NotFoundException::class)
-    fun notFound(e: NotFoundException): ResponseEntity<ErrorResponse> {
-        val status = HttpStatus.NOT_FOUND
-        return ResponseEntity.status(status).body(
-            ErrorResponse(status.value(), status.reasonPhrase, e.message ?: "Not Found")
-        )
-    }
-
-    @ExceptionHandler(IllegalArgumentException::class)
-    fun badRequest(e: Exception): ResponseEntity<ErrorResponse> {
-        val status = HttpStatus.BAD_REQUEST
-        return ResponseEntity.status(status).body(
-            ErrorResponse(status.value(), status.reasonPhrase, e.message ?: "Bad Request")
-        )
+        return ResponseEntity
+            .status(status)
+            .body(ErrorResponse(status.value(), e.message))
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun validation(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
-        val status = HttpStatus.BAD_REQUEST
-        return ResponseEntity.status(status).body(
-            ErrorResponse(status.value(), status.reasonPhrase, "Некорректные данные")
-        )
+    fun handleValidationException(e: MethodArgumentNotValidException): ResponseEntity<ValidationErrorResponse> {
+        val errors = e.bindingResult.fieldErrors.associate {
+            it.field to (it.defaultMessage ?: "Incorrect value")
+        }
+
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(ValidationErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Method parameter validation error",
+                errors
+            ))
+    }
+    @ExceptionHandler(BadRequestException::class)
+    fun handleBadRequestException(e: BadRequestException): ResponseEntity<ErrorResponse> {
+        logger.warn { e.message ?: "Bad request" }
+        return ResponseEntity
+            .status(400)
+            .body(ErrorResponse(400, e.message))
     }
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
-    fun notReadable(e: HttpMessageNotReadableException): ResponseEntity<ErrorResponse> {
-        val status = HttpStatus.BAD_REQUEST
-        return ResponseEntity.status(status).body(
-            ErrorResponse(status.value(), status.reasonPhrase, "Некорректные данные")
-        )
+    fun handleBadJson(e: HttpMessageNotReadableException): ResponseEntity<ValidationErrorResponse> {
+
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(
+                ValidationErrorResponse(
+                    400,
+                    "Malformed JSON or missing required fields",
+                    emptyMap()
+                )
+            )
     }
 
     @ExceptionHandler(Exception::class)
-    fun generic(e: Exception): ResponseEntity<ErrorResponse> {
-        val status = HttpStatus.INTERNAL_SERVER_ERROR
-        return ResponseEntity.status(status).body(
-            ErrorResponse(status.value(), status.reasonPhrase, "Внутренняя ошибка сервера")
-        )
-    }
-
-    @ExceptionHandler(NoSuchElementException::class)
-    fun noSuchElement(e: NoSuchElementException): ResponseEntity<ErrorResponse> {
-        val status = HttpStatus.BAD_REQUEST
-        return ResponseEntity.status(status).body(
-            ErrorResponse(status.value(), status.reasonPhrase, e.message ?: "Bad Request")
-        )
-    }
-
-    @ExceptionHandler(InvalidDataAccessApiUsageException::class)
-    fun invalidDataAccess(e: InvalidDataAccessApiUsageException): ResponseEntity<ErrorResponse> {
-        val status = HttpStatus.BAD_REQUEST
-        return ResponseEntity.status(status).body(
-            ErrorResponse(status.value(), status.reasonPhrase, e.message ?: "Bad Request")
-        )
+    fun handleUnexpected(e: Exception): ResponseEntity<ErrorResponse> {
+        logger.error(e) { "Unexpected error" }
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(ErrorResponse(500, "Internal server error"))
     }
 
 }

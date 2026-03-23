@@ -112,7 +112,17 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>io.github.oshai</groupId>
+            <artifactId>kotlin-logging-jvm</artifactId>
+            <version>7.0.13</version>
+        </dependency>
     </dependencies>
+
+
+
 
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
