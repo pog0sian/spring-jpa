@@ -8,6 +8,7 @@ import com.example.springjpa.domain.port.DishRepositoryPort
 import com.example.springjpa.domain.port.OrderRepositoryPort
 import com.example.springjpa.domain.port.UserRepositoryPort
 import com.example.springjpa.infrastructure.persistence.entity.OrderStatus
+import com.example.springjpa.infrastructure.persistence.jpa.UserJpaRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Service
 class OrderService(
     private val repo: OrderRepositoryPort,
     private val userRepo: UserRepositoryPort,
-    private val dishRepo: DishRepositoryPort
+    private val dishRepo: DishRepositoryPort,
+    private val userJpaRepository: UserJpaRepository
 ) {
 
     private val logger = KotlinLogging.logger {}
@@ -28,6 +30,9 @@ class OrderService(
             logger.warn { "Order not found id=$id" }
             throw NotFoundException("Order with id=$id not found")
         }
+
+    fun isOwner(orderId: Long, userId: Long): Boolean =
+        repo.findByIdWithUserAndDishes(orderId)?.userId == userId
 
 
     fun create(userId: Long, dishIds: List<Long>): Order {
@@ -42,6 +47,12 @@ class OrderService(
         val saved = repo.create(userId = userId, dishIds = dishIds)
         logger.info { "Created order with id=${saved.id}, userId=$userId" }
         return saved
+    }
+
+    fun createForUserEmail(userEmail: String, dishIds: List<Long>): Order {
+        val user = userJpaRepository.findByEmail(userEmail)
+            ?: throw BadRequestException("User with email=$userEmail not found")
+        return create(user.id, dishIds)
     }
 
     fun updateStatus(id: Long, newStatus: OrderStatus): Order {

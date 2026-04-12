@@ -6,4 +6,6 @@ data class User(
     val firstName: String,
     val lastName: String,
     val isActive: Boolean,
+    val password: String = "",
+    val roles: Set<String> = emptySet(),
 )

@@ -22,6 +22,9 @@ class UserJpaAdapter(
     override fun findByEmail(email: String): User? =
         repo.findByEmail(email)?.toDomain()
 
+    override fun existsByEmail(email: String): Boolean =
+        repo.existsByEmail(email)
+
     override fun save(user: User): User =
         repo.save(UserEntity.fromDomain(user)).toDomain()
 

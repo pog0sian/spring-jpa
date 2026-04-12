@@ -11,6 +11,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -58,6 +60,22 @@ class GlobalExceptionHandler {
         return ResponseEntity
             .status(400)
             .body(ErrorResponse(400, e.message))
+    }
+
+    @ExceptionHandler(BadCredentialsException::class)
+    fun handleBadCredentialsException(e: BadCredentialsException): ResponseEntity<ErrorResponse> {
+        logger.warn { "Authentication failed" }
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(ErrorResponse(HttpStatus.UNAUTHORIZED.value(), "Неверный email или пароль"))
+    }
+
+    @ExceptionHandler(AccessDeniedException::class)
+    fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> {
+        logger.warn { "Access denied" }
+        return ResponseEntity
+            .status(HttpStatus.FORBIDDEN)
+            .body(ErrorResponse(HttpStatus.FORBIDDEN.value(), "Доступ запрещён"))
     }
 
     @ExceptionHandler(HttpMessageNotReadableException::class)

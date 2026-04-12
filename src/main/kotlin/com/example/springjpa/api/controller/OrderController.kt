@@ -6,6 +6,8 @@ import com.example.springjpa.api.dto.order.OrderStatusUpdateRequest
 import com.example.springjpa.application.service.OrderService
 import com.example.springjpa.infrastructure.persistence.entity.OrderStatus
 import jakarta.validation.Valid
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
@@ -25,6 +27,7 @@ class OrderController(
 ) {
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     fun list(
         @RequestParam(required = false) userId: Long?,
         @RequestParam(required = false) status: OrderStatus?,
@@ -32,16 +35,23 @@ class OrderController(
         service.list(userId = userId, status = status).map(OrderResponse::fromDomain)
 
     @GetMapping("/{id}")
+    @PreAuthorize("@orderAccessService.canViewOrder(authentication, #id)")
     fun get(@PathVariable id: Long): OrderResponse =
         OrderResponse.fromDomain(service.get(id))
 
     @PostMapping
-    fun create(@Valid @RequestBody req: OrderCreateRequest): ResponseEntity<OrderResponse> {
-        val created = service.create(userId = req.userId, dishIds = req.dishIds)
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    fun create(
+        @Valid @RequestBody req: OrderCreateRequest,
+        authentication: Authentication
+    ): ResponseEntity<OrderResponse> {
+        val principal = authentication.name
+        val created = service.createForUserEmail(userEmail = principal, dishIds = req.dishIds)
         return ResponseEntity.status(201).body(OrderResponse.fromDomain(created))
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     fun updateStatus(
         @PathVariable id: Long,
         @Valid @RequestBody req: OrderStatusUpdateRequest

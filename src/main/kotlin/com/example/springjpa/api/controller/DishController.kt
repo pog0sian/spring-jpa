@@ -5,6 +5,7 @@ import com.example.springjpa.api.dto.dish.DishUpdateRequest
 import com.example.springjpa.application.service.DishService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -31,6 +32,7 @@ class DishController(
         DishResponse.fromDomain(service.get(id))
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     fun update(
         @PathVariable id: Long,
         @Valid @RequestBody req: DishUpdateRequest
@@ -38,6 +40,7 @@ class DishController(
         DishResponse.fromDomain(service.update(id, req.toDomain(id)))
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     fun delete(@PathVariable id: Long): ResponseEntity<Void> {
         service.delete(id)
         return ResponseEntity.noContent().build()

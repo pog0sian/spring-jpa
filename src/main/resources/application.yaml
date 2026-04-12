@@ -20,5 +20,9 @@ spring:
   profiles:
     active: db
 
+jwt:
+  secret: ${JWT_SECRET:my-super-long-secret-key-at-least-32-chars}
+  expiration-ms: ${JWT_EXPIRATION:86400000}
+
 server:
   port: ${SERVER_PORT:8080}
