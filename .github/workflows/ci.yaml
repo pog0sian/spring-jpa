@@ -21,7 +21,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Load .env
-        run: cat .env >> $GITHUB_ENV
+        run: grep -v '^\s*#' .env | grep -v '^\s*$' >> $GITHUB_ENV
 
       - name: Compile Spring app
         run: ./mvnw clean
