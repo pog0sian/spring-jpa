@@ -41,7 +41,12 @@ class SecurityConfig {
                 it.accessDeniedHandler(accessDeniedHandler)
             }
             .authorizeHttpRequests {
-                it.requestMatchers("/auth/**").permitAll()
+                it.requestMatchers(
+                    "/auth/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**",
+                    ).permitAll()
                 it.requestMatchers(HttpMethod.GET, "/api/v1/restaurants/**").permitAll()
                 it.requestMatchers(HttpMethod.GET, "/api/v1/dishes/**").permitAll()
                 it.anyRequest().authenticated()
