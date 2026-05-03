@@ -9,7 +9,8 @@ data class DishResponse(
     val name: String,
     val description: String,
     val price: BigDecimal,
-    @field:JsonProperty("isAvailable")
+    @get:JsonProperty("isAvailable")
+    @param:JsonProperty("isAvailable")
     val isAvailable: Boolean,
     val restaurantId: Long
 ) {
