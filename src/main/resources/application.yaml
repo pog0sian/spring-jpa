@@ -29,9 +29,18 @@ spring:
   profiles:
     active: db
 
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+
 jwt:
   secret: ${JWT_SECRET:my-super-long-secret-key-at-least-32-chars}
   expiration-ms: ${JWT_EXPIRATION:86400000}
+
+app:
+  scheduler:
+    stuck-order-interval-ms: ${STUCK_ORDER_INTERVAL_MS:900000}
+    stuck-order-threshold-hours: ${STUCK_ORDER_THRESHOLD_HOURS:1}
 
 server:
   port: ${SERVER_PORT:8080}

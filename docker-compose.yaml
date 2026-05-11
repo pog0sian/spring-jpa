@@ -55,11 +55,15 @@ services:
       SPRING_FLYWAY_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_FLYWAY_USER: ${POSTGRES_USER}
       SPRING_FLYWAY_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_MAIL_HOST: ${MAIL_HOST}
+      SPRING_MAIL_PORT: ${MAIL_PORT}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mailhog:
+        condition: service_started
 
   redis:
     image: redis:7-alpine
@@ -73,6 +77,12 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "${MAILHOG_SMTP_PORT}:1025"
+      - "${MAILHOG_UI_PORT}:8025"
 
 volumes:
   postgres_data:

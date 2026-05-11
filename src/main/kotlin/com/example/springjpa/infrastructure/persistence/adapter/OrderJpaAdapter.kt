@@ -33,6 +33,10 @@ class OrderJpaAdapter(
     override fun findByIdWithUserAndDishes(id: Long): Order? =
         repo.findWithUserAndDishesById(id)?.toDomain()
 
+    override fun findStuckPreparingOrders(createdBefore: LocalDateTime): List<Order> =
+        repo.findAllByStatusAndCreatedAtBefore(OrderStatus.PREPARING, createdBefore)
+            .map { it.toDomain() }
+
     @Transactional
     override fun create(userId: Long, dishIds: List<Long>): Order {
         val userOpt = userRepo.findById(userId)

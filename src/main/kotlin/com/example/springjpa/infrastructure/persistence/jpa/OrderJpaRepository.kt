@@ -4,6 +4,7 @@ import com.example.springjpa.infrastructure.persistence.entity.OrderEntity
 import com.example.springjpa.infrastructure.persistence.entity.OrderStatus
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
+import java.time.LocalDateTime
 
 interface OrderJpaRepository : JpaRepository<OrderEntity, Long> {
 
@@ -15,5 +16,10 @@ interface OrderJpaRepository : JpaRepository<OrderEntity, Long> {
     fun findAllByStatus(status: OrderStatus): List<OrderEntity>
 
     fun findAllByUser_IdAndStatus(userId: Long, status: OrderStatus): List<OrderEntity>
+
+    fun findAllByStatusAndCreatedAtBefore(
+        status: OrderStatus,
+        createdAt: LocalDateTime
+    ): List<OrderEntity>
 
 }

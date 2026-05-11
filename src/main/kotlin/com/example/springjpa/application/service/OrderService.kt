@@ -11,13 +11,15 @@ import com.example.springjpa.infrastructure.persistence.entity.OrderStatus
 import com.example.springjpa.infrastructure.persistence.jpa.UserJpaRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class OrderService(
     private val repo: OrderRepositoryPort,
     private val userRepo: UserRepositoryPort,
     private val dishRepo: DishRepositoryPort,
-    private val userJpaRepository: UserJpaRepository
+    private val userJpaRepository: UserJpaRepository,
+    private val notificationService: NotificationService
 ) {
 
     private val logger = KotlinLogging.logger {}
@@ -66,7 +68,17 @@ class OrderService(
             throw InvalidOrderStateException("Invalid status transition: ${existing.status} -> $newStatus")
         }
 
-        return repo.updateStatus(id, newStatus)
+        val updated = repo.updateStatus(id, newStatus)
+
+        userRepo.findById(existing.userId)?.let { user ->
+            notificationService.sendOrderStatusUpdate(
+                to = user.email,
+                orderId = updated.id,
+                status = updated.status.name
+            )
+        }
+
+        return updated
     }
 
     fun delete(id: Long) {
@@ -78,11 +90,25 @@ class OrderService(
         logger.info { "Deleted order with id=$id, status=${existing.status}" }
     }
 
+    fun cancelStuckPreparingOrders(createdBefore: LocalDateTime): Int {
+        val stuckOrders = repo.findStuckPreparingOrders(createdBefore)
+
+        logger.info { "Found ${stuckOrders.size} stuck PREPARING orders created before $createdBefore" }
+
+        stuckOrders.forEach { order ->
+            updateStatus(order.id, OrderStatus.CANCELLED)
+            logger.info { "Cancelled stuck order id=${order.id}, createdAt=${order.createdAt}" }
+        }
+
+        return stuckOrders.size
+    }
+
     private fun isValidTransition(old: OrderStatus, new: OrderStatus): Boolean {
         if (old == new) return true
         return when (old) {
             OrderStatus.PENDING -> new == OrderStatus.CONFIRMED || new == OrderStatus.CANCELLED
-            OrderStatus.CONFIRMED -> new == OrderStatus.DELIVERED || new == OrderStatus.CANCELLED
+            OrderStatus.CONFIRMED -> new == OrderStatus.PREPARING || new == OrderStatus.CANCELLED
+            OrderStatus.PREPARING -> new == OrderStatus.DELIVERED || new == OrderStatus.CANCELLED
             OrderStatus.DELIVERED -> false
             OrderStatus.CANCELLED -> false
         }
